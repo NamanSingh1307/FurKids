@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Care Guides</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .guide-tabs  { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .tab-btn { background:var(--card); border:1px solid var(--border); border-radius:99px; padding:.4rem 1rem; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .2s,border-color .2s; }
+    .tab-btn.active { background:var(--primary); border-color:var(--primary); color:#000; }
+    .guide-section { display:none; }
+    .guide-section.visible { display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    .guide-article { margin-bottom:2rem; }
+    .guide-article h3 { font-size:1.1rem; font-weight:800; margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .guide-article p, .guide-article li { font-size:.9rem; color:var(--text-muted); line-height:1.8; }
+    .guide-article ul { padding-left:1.25rem; }
+    .guide-article ul li { margin-bottom:.3rem; }
+    .tip-box { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin-top:.75rem; font-size:.88rem; color:var(--primary); }
+    .warn-box  { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2); border-radius:var(--radius-sm); padding:1rem 1.25rem; margin-top:.75rem; font-size:.88rem; color:var(--warn); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html" class="active">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <h1 class="section-title">📚 Pet Care <span>Guides</span></h1>
+
+    <!-- Tab buttons -->
+    <div class="guide-tabs">
+      <button class="tab-btn active" onclick="showTab('feeding')">🍗 Feeding</button>
+      <button class="tab-btn" onclick="showTab('training')">🎓 Training</button>
+      <button class="tab-btn" onclick="showTab('grooming')">✂️ Grooming</button>
+      <button class="tab-btn" onclick="showTab('health')">🩺 Health</button>
+      <button class="tab-btn" onclick="showTab('puppycare')">🐣 Puppy / Kitten Care</button>
+    </div>
+
+    <!-- Feeding Guide -->
+    <div class="guide-section visible card" id="tab-feeding" style="padding:2rem">
+      <div class="guide-article">
+        <h3>🍗 How to Feed Your Dog</h3>
+        <p>Dogs are omnivores and need a balanced diet of proteins, carbohydrates, fats, vitamins, and minerals.</p>
+        <ul>
+          <li>Puppies (under 1 year): 3–4 meals per day</li>
+          <li>Adult dogs (1–7 years): 2 meals per day</li>
+          <li>Senior dogs (7+ years): 2 smaller meals per day</li>
+          <li>Always provide fresh water throughout the day</li>
+          <li>Measure portions based on body weight — check the food packaging</li>
+        </ul>
+        <div class="warn-box">⚠️ Never feed: onions, garlic, grapes, raisins, chocolate, xylitol (sugar-free sweetener), avocado, or cooked bones.</div>
+        <div class="tip-box">✅ Good foods: boiled chicken, plain rice, carrots, sweet potato, and commercial vet-approved dog food.</div>
+      </div>
+      <hr class="divider" />
+      <div class="guide-article">
+        <h3>🐱 How to Feed Your Cat</h3>
+        <p>Cats are obligate carnivores — they must have meat in their diet to survive. Unlike dogs, they cannot synthesise certain nutrients from plant sources.</p>
+        <ul>
+          <li>Feed twice a day — morning and evening</li>
+          <li>Kittens need 3–4 small meals per day</li>
+          <li>Provide both wet food (for hydration) and dry kibble</li>
+          <li>Avoid free-feeding dry food as it can lead to obesity</li>
+          <li>Fresh water must always be available</li>
+        </ul>
+        <div class="warn-box">⚠️ Never feed cats: raw fish (regularly), onions, garlic, alcohol, grapes, or dog food (it lacks taurine).</div>
+      </div>
+    </div>
+
+    <!-- Training Guide -->
+    <div class="guide-section card" id="tab-training" style="padding:2rem">
+      <div class="guide-article">
+        <h3>🎓 Basic Dog Training Tips</h3>
+        <p>Dogs learn best through positive reinforcement. Be patient, consistent, and always end sessions on a positive note.</p>
+        <ul>
+          <li><strong>Start early</strong> — puppies as young as 7–8 weeks can learn basic commands</li>
+          <li><strong>Short sessions</strong> — 5–10 minutes, 2–3 times daily is more effective than one long session</li>
+          <li><strong>Use high-value treats</strong> — small pieces of chicken or cheese work well as rewards</li>
+          <li><strong>Consistency</strong> — every family member should use the same commands</li>
+          <li><strong>Never punish</strong> — redirect unwanted behaviour; ignore and reward the good</li>
+        </ul>
+        <div class="tip-box">✅ Essential commands to teach first: Sit, Stay, Come, Leave it, Down. Master these before advanced tricks.</div>
+      </div>
+      <hr class="divider" />
+      <div class="guide-article">
+        <h3>🏠 House Training / Potty Training</h3>
+        <ul>
+          <li>Take the puppy outside every 2 hours, and immediately after eating or waking up</li>
+          <li>Choose a specific outdoor spot — the scent helps the puppy understand</li>
+          <li>Praise and reward immediately after they go outside</li>
+          <li>Accidents indoors: clean with enzymatic cleaner (not bleach) to remove scent</li>
+          <li>Expect full training to take 4–6 months for young puppies</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Grooming Guide -->
+    <div class="guide-section card" id="tab-grooming" style="padding:2rem">
+      <div class="guide-article">
+        <h3>✂️ Dog Grooming Basics</h3>
+        <ul>
+          <li><strong>Bathing:</strong> Every 4–8 weeks depending on breed and activity level. Use dog-specific shampoo only.</li>
+          <li><strong>Brushing:</strong> Short coats — weekly. Medium coats — 2–3 times/week. Long coats — daily to prevent matting.</li>
+          <li><strong>Nail trimming:</strong> Every 3–4 weeks. Trim just the tip — avoid the pink 'quick' which contains blood vessels.</li>
+          <li><strong>Ear cleaning:</strong> Check weekly for redness, smell, or discharge. Use vet-approved ear cleaner.</li>
+          <li><strong>Teeth brushing:</strong> 2–3 times per week with a dog-specific toothpaste (never human toothpaste).</li>
+        </ul>
+        <div class="tip-box">✅ Start grooming routines early so your pet becomes comfortable with handling.</div>
+      </div>
+      <hr class="divider" />
+      <div class="guide-article">
+        <h3>🐱 Cat Grooming Basics</h3>
+        <ul>
+          <li>Most cats self-groom — but short-haired cats benefit from weekly brushing</li>
+          <li>Long-haired cats (Persian, Maine Coon) need daily brushing to avoid tangles</li>
+          <li>Cats rarely need bathing — only when they get into something messy</li>
+          <li>Trim nails every 2–3 weeks; provide a scratching post to prevent furniture damage</li>
+          <li>Check ears monthly for dark debris (sign of ear mites)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Health Guide -->
+    <div class="guide-section card" id="tab-health" style="padding:2rem">
+      <div class="guide-article">
+        <h3>🩺 Vaccination Schedule (India)</h3>
+        <ul>
+          <li><strong>6–8 weeks:</strong> Distemper, Parvovirus, Hepatitis (DHPPi)</li>
+          <li><strong>10–12 weeks:</strong> DHPPi booster + Leptospirosis</li>
+          <li><strong>14–16 weeks:</strong> DHPPi + Rabies (mandatory by law)</li>
+          <li><strong>Annual boosters:</strong> All core vaccines repeated every year</li>
+          <li><strong>Cats:</strong> FVRCP (3-in-1) at 8, 12, 16 weeks, then annually</li>
+        </ul>
+        <div class="tip-box">✅ Keep a vaccination booklet and upload photos of it to FurKids Records so you never lose track.</div>
+      </div>
+      <hr class="divider" />
+      <div class="guide-article">
+        <h3>🪱 Deworming Schedule</h3>
+        <ul>
+          <li>Puppies/kittens: every 2 weeks from 2–8 weeks of age, then monthly until 6 months</li>
+          <li>Adults: every 3 months is the standard recommendation in India</li>
+          <li>Use vet-prescribed dewormers; do not use human medicines</li>
+          <li>Common worms in India: roundworm, hookworm, tapeworm</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Puppy/Kitten Care -->
+    <div class="guide-section card" id="tab-puppycare" style="padding:2rem">
+      <div class="guide-article">
+        <h3>🐣 Bringing Home a Puppy</h3>
+        <ul>
+          <li>Puppy-proof your home: remove electrical cords, toxic plants, small objects</li>
+          <li>Set up a comfortable crate or bed in a quiet corner</li>
+          <li>Keep the first few days calm — avoid too many visitors</li>
+          <li>Begin socialisation at 3–14 weeks (critical window): expose to sounds, people, other dogs</li>
+          <li>Schedule a vet visit within the first week for a full health check</li>
+          <li>Do not let the puppy outside until fully vaccinated</li>
+        </ul>
+        <div class="tip-box">✅ Puppies sleep 16–18 hours a day — this is completely normal!</div>
+      </div>
+      <hr class="divider" />
+      <div class="guide-article">
+        <h3>🐈 Kitten First Weeks</h3>
+        <ul>
+          <li>Kittens under 4 weeks need feeding every 2 hours — use kitten milk replacer (not cow's milk)</li>
+          <li>Provide a litter box from 3 weeks — kittens instinctively use it</li>
+          <li>Begin handling and playing gently from 2–3 weeks to build sociability</li>
+          <li>Keep them warm — kittens cannot regulate body temperature until 5–6 weeks</li>
+          <li>Introduce solid food at 4–5 weeks (softened kitten kibble)</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.guide-section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('visible');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

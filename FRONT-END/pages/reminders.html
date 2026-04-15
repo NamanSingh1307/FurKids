@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Reminders</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .rem-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .reminder-item {
+      display:flex; align-items:center; gap:1rem;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:1.1rem 1.25rem;
+      margin-bottom:.75rem; transition:transform .2s;
+    }
+    .reminder-item:hover { transform:translateX(4px); }
+    .rem-icon { font-size:1.8rem; flex-shrink:0; }
+    .rem-info { flex:1; }
+    .rem-info .rem-title { font-weight:700; font-size:.98rem; }
+    .rem-info .rem-meta  { font-size:.82rem; color:var(--text-muted); margin-top:.15rem; }
+    .rem-actions { display:flex; gap:.5rem; }
+    .days-chip { font-size:.75rem; font-weight:700; padding:.25rem .6rem; border-radius:99px; }
+    .days-chip.urgent { background:rgba(239,68,68,.15); color:var(--danger); }
+    .days-chip.soon   { background:rgba(245,158,11,.15); color:var(--warn); }
+    .days-chip.ok     { background:rgba(34,197,94,.15);  color:var(--primary); }
+    .days-chip.past   { background:rgba(148,163,184,.1); color:var(--text-muted); }
+    /* this is a javascript object syntax */
+    /* .type-icon { 'vaccination':'💉','deworming':'🪱','grooming':'✂️','checkup':'🩺','other':'📌' } */
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html" class="active">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <div class="rem-header">
+      <h1 class="section-title" style="margin-bottom:0">⏰ Care <span>Reminders</span></h1>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Reminder</button>
+    </div>
+
+    <div id="spinner" class="spinner"></div>
+    <div id="reminderList"></div>
+  </div>
+</div>
+
+<!-- ── Add / Edit Reminder Modal ────────────────────────── -->
+<div class="modal-overlay" id="remModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="remModalTitle">Add Reminder</h3>
+      <button class="modal-close" onclick="closeModal('remModal')">✕</button>
+    </div>
+    <input type="hidden" id="remId" />
+    <div class="form-group">
+      <label>Pet *</label>
+      <select id="remPetId"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type *</label>
+        <select id="remType">
+          <option value="vaccination">💉 Vaccination</option>
+          <option value="deworming">🪱 Deworming</option>
+          <option value="grooming">✂️ Grooming</option>
+          <option value="checkup">🩺 Check-up</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="remDate" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="remNotes" placeholder="Additional notes..."></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('remModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveReminder()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  const TYPE_ICON = { vaccination:'💉', deworming:'🪱', grooming:'✂️', checkup:'🩺', other:'📌' };
+  let allPets = [];
+
+  async function init() {
+    try {
+      const [reminders, pets] = await Promise.all([RemindersAPI.getAll(), PetsAPI.getAll()]);
+      allPets = pets;
+      populatePetSelect();
+      renderReminders(reminders);
+    } catch (e) {
+      showToast('Could not load reminders. Is the backend running?', 'error');
+    } finally {
+      document.getElementById('spinner').style.display = 'none';
+    }
+  }
+
+  function populatePetSelect() {
+    const sel = document.getElementById('remPetId');
+    sel.innerHTML = allPets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+
+  function renderReminders(reminders) {
+    const list = document.getElementById('reminderList');
+    if (!reminders.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">⏰</div><p>No reminders yet. Add one!</p></div>`;
+      return;
+    }
+
+    // Sort by date ascending
+    reminders.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    list.innerHTML = reminders.map(r => {
+      const d    = daysUntil(r.date);
+      let chipClass, chipText;
+      if      (d < 0)   { chipClass='past';   chipText=`${Math.abs(d)}d ago`; }
+      else if (d <= 3)  { chipClass='urgent'; chipText=`${d}d left`; }
+      else if (d <= 10) { chipClass='soon';   chipText=`${d}d left`; }
+      else              { chipClass='ok';     chipText=`${d}d left`; }
+
+      return `
+      <div class="reminder-item">
+        <div class="rem-icon">${TYPE_ICON[r.type] || '📌'}</div>
+        <div class="rem-info">
+          <div class="rem-title">${cap(r.type)} — ${r.pet_name || 'Unknown Pet'}</div>
+          <div class="rem-meta">📅 ${formatDate(r.date)}${r.notes ? ' · ' + r.notes : ''}</div>
+        </div>
+        <span class="days-chip ${chipClass}">${chipText}</span>
+        <div class="rem-actions">
+          <button class="btn btn-outline btn-sm" onclick="editReminder(${JSON.stringify(r).replace(/"/g,'&quot;')})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteReminder(${r.id})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function openAddModal() {
+    document.getElementById('remId').value = '';
+    document.getElementById('remType').value = 'vaccination';
+    document.getElementById('remDate').value = '';
+    document.getElementById('remNotes').value = '';
+    document.getElementById('remModalTitle').textContent = 'Add Reminder';
+    populatePetSelect();
+    openModal('remModal');
+  }
+
+  function editReminder(r) {
+    document.getElementById('remId').value   = r.id;
+    document.getElementById('remType').value = r.type;
+    document.getElementById('remDate').value = r.date?.split('T')[0] || '';
+    document.getElementById('remNotes').value= r.notes || '';
+    document.getElementById('remModalTitle').textContent = 'Edit Reminder';
+    // Select correct pet
+    document.getElementById('remPetId').value = r.pet_id;
+    openModal('remModal');
+  }
+
+  async function saveReminder() {
+    const id = document.getElementById('remId').value;
+    const payload = {
+      type:   document.getElementById('remType').value,
+      date:   document.getElementById('remDate').value,
+      notes:  document.getElementById('remNotes').value.trim(),
+      pet_id: document.getElementById('remPetId').value
+    };
+    if (!payload.date) { showToast('Please select a date.', 'error'); return; }
+    try {
+      if (id) { await RemindersAPI.update(id, payload); showToast('Reminder updated!'); }
+      else     { await RemindersAPI.create(payload);    showToast('Reminder added!'); }
+      closeModal('remModal');
+      init();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function deleteReminder(id) {
+    if (!confirm('Delete this reminder?')) return;
+    try { await RemindersAPI.delete(id); showToast('Deleted.'); init(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>

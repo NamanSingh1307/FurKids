@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Smart Pet Care</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    /* ── Hero ───────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex; align-items: center;
+      padding: 4rem 0;
+      background: radial-gradient(ellipse at 70% 40%, rgba(34,197,94,.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(56,189,248,.06) 0%, transparent 55%);
+    }
+    .hero-content { max-width: 600px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3);
+      color: var(--primary); border-radius: 99px;
+      padding: .35rem 1rem; font-size: .82rem; font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800; line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem; max-width: 480px; }
+    .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+    .hero-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-item .number { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+    .stat-item .label  { font-size: .8rem; color: var(--text-muted); }
+
+    /* ── Features ───────────────────────────────────────── */
+    .features { padding: 5rem 0; }
+    .features-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .feature-card { padding: 1.75rem; }
+    .feature-icon { font-size: 2.2rem; margin-bottom: 1rem; }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+    .feature-card p  { font-size: .88rem; color: var(--text-muted); }
+
+    /* ── Tips carousel ──────────────────────────────────── */
+    .tips-section { padding: 3rem 0 5rem; }
+    .tips-track { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .tip-card {
+      min-width: 260px; background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; flex-shrink: 0;
+    }
+    .tip-card .tip-emoji { font-size: 1.8rem; margin-bottom: .75rem; }
+    .tip-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: .4rem; }
+    .tip-card p  { font-size: .82rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="active">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge">🐾 Smart Pet Care System</div>
+      <h1>Your Smart Pet Care <span>Companion</span> 🐾</h1>
+      <p>Manage your pets' health, set care reminders, store medical records, and find vets — all in one place.</p>
+
+      <div class="hero-ctas">
+        <a href="dashboard.html" class="btn btn-primary">🐶 Add Pet</a>
+        <a href="problem.html"   class="btn btn-danger">🚨 Emergency Help</a>
+        <a href="reminders.html" class="btn btn-accent">⏰ Reminders</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item"><div class="number">5+</div><div class="label">Care Features</div></div>
+        <div class="stat-item"><div class="number">100%</div><div class="label">Free to Use</div></div>
+        <div class="stat-item"><div class="number">24/7</div><div class="label">Always Available</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────── -->
+<section class="features">
+  <div class="container">
+    <h2 class="section-title">Everything your pet <span>needs</span></h2>
+    <div class="features-grid">
+      <div class="card feature-card">
+        <div class="feature-icon">🐶</div>
+        <h3>Pet Dashboard</h3>
+        <p>Add, edit, and manage all your pets with details like breed, age, and weight.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">💊</div>
+        <h3>Care Reminders</h3>
+        <p>Never miss a vaccination, grooming, or deworming session with smart reminders.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">🚨</div>
+        <h3>Problem Solver</h3>
+        <p>Quick guidance for common pet symptoms — know what to do and when to visit a vet.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">📁</div>
+        <h3>Medical Records</h3>
+        <p>Store and access prescriptions, X-rays, and lab reports — all in one place.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">📍</div>
+        <h3>Vet Finder</h3>
+        <p>Find trusted veterinary clinics near you with contact details.</p>
+      </div>
+      <div class="card feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>Care Guides</h3>
+        <p>Feeding, grooming, and training tips written in simple language for every pet owner.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tips Carousel ──────────────────────────────────────── -->
+<section class="tips-section">
+  <div class="container">
+    <h2 class="section-title">Quick <span>Pet Tips</span></h2>
+    <div class="tips-track" id="tipsTrack">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</section>
+
+<script src="../js/app.js"></script>
+<script>
+  // Static tips data
+  const TIPS = [
+    { emoji: '💧', title: 'Fresh Water Daily', text: 'Always provide clean drinking water. Change it at least once a day to keep your pet healthy.' },
+    { emoji: '🌞', title: 'Daily Exercise', text: 'Dogs need 30–60 min of exercise daily. Even indoor cats benefit from 15 min of play.' },
+    { emoji: '🦷', title: 'Dental Hygiene', text: 'Brush your pet\'s teeth 2–3 times a week to prevent dental disease and bad breath.' },
+    { emoji: '🍗', title: 'Balanced Diet', text: 'Feed species-appropriate food. Avoid onions, garlic, grapes, and chocolate — all toxic to pets.' },
+    { emoji: '🩺', title: 'Annual Check-ups', text: 'Visit your vet at least once a year for a full health screening and updated vaccinations.' },
+    { emoji: '🛁', title: 'Regular Grooming', text: 'Groom your dog every 4–8 weeks. Cats groom themselves but still need brushing to reduce hairballs.' },
+    { emoji: '🧠', title: 'Mental Stimulation', text: 'Puzzle toys and training sessions keep your pet mentally sharp and reduce destructive behavior.' },
+    { emoji: '🌡️', title: 'Watch the Heat', text: 'Never leave pets in a parked car. In summer, walk dogs in early morning or evening hours.' },
+  ];
+
+  const track = document.getElementById('tipsTrack');
+  TIPS.forEach(tip => {
+    track.innerHTML += `
+      <div class="tip-card">
+        <div class="tip-emoji">${tip.emoji}</div>
+        <h4>${tip.title}</h4>
+        <p>${tip.text}</p>
+      </div>`;
+  });
+</script>
+</body>
+</html>

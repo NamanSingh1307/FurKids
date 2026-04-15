@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Problem Solver</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .problem-grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); margin-bottom:2rem; }
+    .problem-btn {
+      background:var(--card); border:2px solid var(--border); border-radius:var(--radius);
+      padding:1.5rem 1rem; text-align:center; cursor:pointer;
+      transition:border-color .2s, transform .2s;
+    }
+    .problem-btn:hover, .problem-btn.selected { border-color:var(--primary); transform:translateY(-2px); }
+    .problem-btn .prob-icon { font-size:2.2rem; margin-bottom:.6rem; }
+    .problem-btn .prob-label { font-weight:700; font-size:.95rem; }
+    .result-card { display:none; }
+    .result-card.visible { display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    .result-section { margin-bottom:1.5rem; }
+    .result-section h4 { font-size:1rem; font-weight:700; margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .result-list { list-style:none; padding:0; }
+    .result-list li { padding:.45rem 0; border-bottom:1px solid var(--border); font-size:.9rem; color:var(--text-muted); }
+    .result-list li:last-child { border:none; }
+    .result-list li::before { content:'• '; color:var(--primary); }
+    .vet-warning { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:var(--radius-sm); padding:1rem 1.25rem; color:#fca5a5; font-size:.9rem; margin-top:1rem; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html" class="active">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <h1 class="section-title">🚨 Problem <span>Solver</span></h1>
+    <p style="color:var(--text-muted);margin-bottom:2rem;">Select your pet's symptom to get instant guidance. This is general advice — always consult a vet for serious conditions.</p>
+
+    <!-- Symptom buttons -->
+    <div class="problem-grid" id="problemGrid">
+      <div class="problem-btn" onclick="showResult('not-eating')" data-key="not-eating">
+        <div class="prob-icon">🍽️</div>
+        <div class="prob-label">Not Eating</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('vomiting')" data-key="vomiting">
+        <div class="prob-icon">🤢</div>
+        <div class="prob-label">Vomiting</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('injury')" data-key="injury">
+        <div class="prob-icon">🩹</div>
+        <div class="prob-label">Injury / Wound</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('fever')" data-key="fever">
+        <div class="prob-icon">🌡️</div>
+        <div class="prob-label">Fever</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('diarrhea')" data-key="diarrhea">
+        <div class="prob-icon">💧</div>
+        <div class="prob-label">Diarrhea</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('lethargy')" data-key="lethargy">
+        <div class="prob-icon">😴</div>
+        <div class="prob-label">Lethargy</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('itching')" data-key="itching">
+        <div class="prob-icon">🐛</div>
+        <div class="prob-label">Itching / Rash</div>
+      </div>
+      <div class="problem-btn" onclick="showResult('limping')" data-key="limping">
+        <div class="prob-icon">🦵</div>
+        <div class="prob-label">Limping</div>
+      </div>
+    </div>
+
+    <!-- Result area -->
+    <div class="card result-card" id="resultCard">
+      <h3 id="resultTitle" style="font-size:1.25rem;font-weight:800;margin-bottom:1.5rem;"></h3>
+
+      <div class="result-section">
+        <h4>🔍 Possible Reasons</h4>
+        <ul class="result-list" id="reasons"></ul>
+      </div>
+
+      <div class="result-section">
+        <h4>✅ What to Do NOW</h4>
+        <ul class="result-list" id="actions"></ul>
+      </div>
+
+      <div class="vet-warning" id="vetWarning"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  // ── Knowledge base (pure JS – no AI) ──────────────────────
+  const PROBLEMS = {
+    'not-eating': {
+      title: '🍽️ Pet is Not Eating',
+      reasons: [
+        'Stress or anxiety from change in environment',
+        'Dental pain or gum disease making chewing painful',
+        'Stomach upset or nausea',
+        'New food introduced too quickly',
+        'Underlying illness such as kidney disease or infections',
+        'Picky eating due to over-treating'
+      ],
+      actions: [
+        'Skip one meal, then offer a small portion of familiar food',
+        'Warm the food slightly to enhance its aroma',
+        'Check the mouth for broken teeth, swelling, or bad odour',
+        'Ensure the water bowl is fresh and clean',
+        'Remove distractions and feed in a quiet, calm area',
+        'Try hand-feeding a small piece to encourage appetite'
+      ],
+      vet: '⚠️ Visit a vet if your pet has not eaten for more than 48 hours, appears weak, or has other symptoms like vomiting or weight loss.'
+    },
+    'vomiting': {
+      title: '🤢 Pet is Vomiting',
+      reasons: [
+        'Eating too fast or overeating',
+        'Swallowing grass, hair, or a foreign object',
+        'Food intolerance or sudden diet change',
+        'Parasitic infection (worms)',
+        'Pancreatitis or liver issues',
+        'Heatstroke in summer'
+      ],
+      actions: [
+        'Withhold food for 2–4 hours to let the stomach settle',
+        'Offer small sips of fresh water frequently',
+        'After fasting, introduce bland food — boiled rice with plain chicken',
+        'Check if the pet ate something unusual (plants, trash, human food)',
+        'Keep the pet calm and in a cool, quiet space',
+        'Note the colour and frequency of vomiting to tell your vet'
+      ],
+      vet: '⚠️ Go to a vet immediately if vomiting is frequent (more than 3 times in a day), contains blood, or is accompanied by bloating, pain, or collapse.'
+    },
+    'injury': {
+      title: '🩹 Injury / Wound',
+      reasons: [
+        'Cut or scrape from sharp objects',
+        'Bite wound from another animal',
+        'Broken nail or paw pad injury',
+        'Fall or blunt trauma',
+        'Road accident'
+      ],
+      actions: [
+        'Stay calm — your pet will mirror your energy',
+        'Gently restrain the pet to prevent further injury',
+        'For bleeding: apply gentle pressure with a clean cloth for 5–10 min',
+        'Do NOT use hydrogen peroxide or alcohol — use saline or clean water',
+        'Cover the wound loosely with a clean bandage',
+        'Do not attempt to reset broken bones — immobilise and go to vet'
+      ],
+      vet: '🚨 Rush to an emergency vet immediately for deep wounds, heavy bleeding, suspected fractures, puncture wounds (bites), or loss of consciousness.'
+    },
+    'fever': {
+      title: '🌡️ Pet has Fever',
+      reasons: [
+        'Bacterial or viral infection',
+        'Tick-borne disease (common in India)',
+        'Post-vaccination reaction (usually mild and temporary)',
+        'Abscess or infected wound',
+        'Heatstroke'
+      ],
+      actions: [
+        'Normal dog/cat temperature: 38°C–39.2°C (100.4°F–102.5°F)',
+        'Place cool (not cold) wet towels on paws, armpits, and groin area',
+        'Encourage drinking small amounts of water',
+        'Move pet to a cool, shaded, well-ventilated area',
+        'Do NOT give human fever medicines (paracetamol is toxic to pets)',
+        'Monitor temperature every 30 minutes if possible'
+      ],
+      vet: '⚠️ See a vet if temperature exceeds 39.7°C (103.5°F), the fever lasts more than 24 hours, or pet shows shivering, difficulty breathing, or collapse.'
+    },
+    'diarrhea': {
+      title: '💧 Pet has Diarrhea',
+      reasons: [
+        'Sudden change in diet',
+        'Food intolerance or allergy',
+        'Eating spoiled food or garbage',
+        'Intestinal parasites (worms, giardia)',
+        'Stress or anxiety',
+        'Bacterial or viral infection'
+      ],
+      actions: [
+        'Withhold food for 12–24 hours (water is still essential)',
+        'Provide plenty of fresh water to prevent dehydration',
+        'Reintroduce food as small portions of plain boiled rice and chicken',
+        'Add a pinch of plain pumpkin puree — helps firm stool naturally',
+        'Avoid dairy, fatty, or rich foods during recovery',
+        'Keep pet indoors and monitor stool consistency'
+      ],
+      vet: '⚠️ Visit a vet if diarrhea contains blood, lasts more than 2 days, or is accompanied by vomiting, lethargy, or signs of severe dehydration (sunken eyes, dry gums).'
+    },
+    'lethargy': {
+      title: '😴 Pet is Lethargic / Low Energy',
+      reasons: [
+        'Mild illness or infection',
+        'Pain from injury or arthritis',
+        'Emotional distress or depression',
+        'Anaemia (low red blood cells)',
+        'Heart or respiratory disease',
+        'Overheating'
+      ],
+      actions: [
+        'Observe carefully for 12–24 hours',
+        'Ensure fresh food and water are available',
+        'Try gentle interaction — play or a short slow walk',
+        'Check for other symptoms: limping, coughing, loss of appetite',
+        'Keep the environment calm and comfortable',
+        'Document changes in behaviour to report to the vet'
+      ],
+      vet: '⚠️ Consult a vet if lethargy lasts more than 24 hours, is sudden in onset, or is combined with other symptoms like vomiting, pale gums, or breathing difficulty.'
+    },
+    'itching': {
+      title: '🐛 Itching / Skin Rash',
+      reasons: [
+        'Flea or tick infestation (most common cause)',
+        'Food or environmental allergy',
+        'Mange (mite infection)',
+        'Fungal infection (ringworm)',
+        'Contact with an irritant plant or chemical',
+        'Dry skin due to nutritional deficiency'
+      ],
+      actions: [
+        'Check the coat carefully for fleas (tiny dark specs) or ticks',
+        'Bathe with a mild veterinary-approved shampoo',
+        'Use a fine-tooth comb to remove fleas',
+        'Do NOT use human anti-itch creams — many are toxic',
+        'Wash all pet bedding and vacuum the house thoroughly',
+        'Prevent licking the affected area with an e-collar if needed'
+      ],
+      vet: '⚠️ See a vet if scratching causes open wounds, hair loss, intense redness, or swelling, or if fleas/ticks are heavily infested.'
+    },
+    'limping': {
+      title: '🦵 Pet is Limping',
+      reasons: [
+        'Thorn, glass, or debris stuck in paw',
+        'Paw pad burn (hot pavement in summer)',
+        'Sprain or soft tissue injury',
+        'Broken nail',
+        'Joint pain or arthritis (older pets)',
+        'Fracture or dislocation'
+      ],
+      actions: [
+        'Examine the paw carefully for cuts, swelling, or foreign objects',
+        'If a thorn is visible, remove gently with clean tweezers',
+        'Rinse the paw with clean water and dry gently',
+        'Restrict activity — no running or jumping',
+        'Apply a cold pack wrapped in cloth for 10 min to reduce swelling',
+        'Keep the pet on soft, flat surfaces to minimise pain'
+      ],
+      vet: '🚨 Rush to a vet if the pet cannot bear any weight on the leg, the limb is visibly deformed, severely swollen, or if there is an open wound with bone visible.'
+    }
+  };
+
+  function showResult(key) {
+    // Highlight selected button
+    document.querySelectorAll('.problem-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`[data-key="${key}"]`).classList.add('selected');
+
+    const data = PROBLEMS[key];
+    document.getElementById('resultTitle').textContent = data.title;
+
+    // Populate reasons
+    document.getElementById('reasons').innerHTML =
+      data.reasons.map(r => `<li>${r}</li>`).join('');
+
+    // Populate actions
+    document.getElementById('actions').innerHTML =
+      data.actions.map(a => `<li>${a}</li>`).join('');
+
+    // Vet warning
+    document.getElementById('vetWarning').textContent = data.vet;
+
+    // Show the card
+    const card = document.getElementById('resultCard');
+    card.classList.add('visible');
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
+<script src="../js/app.js"></script>
+</body>
+</html>

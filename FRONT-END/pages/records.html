@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Medical Records</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .rec-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .record-item {
+      display:flex; align-items:center; gap:1rem;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:1.1rem 1.25rem;
+      margin-bottom:.75rem; transition:transform .2s;
+    }
+    .record-item:hover { transform:translateX(4px); }
+    .rec-icon { font-size:1.8rem; flex-shrink:0; }
+    .rec-info { flex:1; }
+    .rec-title { font-weight:700; font-size:.98rem; }
+    .rec-meta  { font-size:.82rem; color:var(--text-muted); margin-top:.15rem; }
+    .rec-actions { display:flex; gap:.5rem; }
+    .file-drop {
+      border:2px dashed var(--border); border-radius:var(--radius);
+      padding:2rem; text-align:center; color:var(--text-muted);
+      cursor:pointer; transition:border-color .2s;
+    }
+    .file-drop:hover, .file-drop.dragover { border-color:var(--primary); color:var(--text); }
+    .file-drop input { display:none; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html" class="active">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <div class="rec-header">
+      <h1 class="section-title" style="margin-bottom:0">📁 Medical <span>Records</span></h1>
+      <button class="btn btn-primary" onclick="openModal('recModal')">+ Upload Record</button>
+    </div>
+
+    <div id="spinner" class="spinner"></div>
+    <div id="recordList"></div>
+  </div>
+</div>
+
+<!-- ── Upload Record Modal ───────────────────────────────── -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Upload Medical Record</h3>
+      <button class="modal-close" onclick="closeModal('recModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Pet *</label>
+      <select id="recPetId"></select>
+    </div>
+    <div class="form-group">
+      <label>Record Title *</label>
+      <input type="text" id="recTitle" placeholder="e.g. Annual Vaccination Certificate" />
+    </div>
+    <div class="form-group">
+      <label>Record Type</label>
+      <select id="recType">
+        <option value="Prescription">💊 Prescription</option>
+        <option value="Lab Report">🔬 Lab Report</option>
+        <option value="X-Ray">🩻 X-Ray / Scan</option>
+        <option value="Vaccination">💉 Vaccination Card</option>
+        <option value="General">📄 General Document</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>File</label>
+      <div class="file-drop" id="fileDrop" onclick="document.getElementById('recFile').click()">
+        <input type="file" id="recFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="showFileName(this)" />
+        <div id="fileDropText">📎 Click to browse or drag & drop<br><small>PDF, JPG, PNG, DOC supported</small></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('recModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Upload</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  const REC_ICON = { 'Prescription':'💊','Lab Report':'🔬','X-Ray':'🩻','Vaccination':'💉','General':'📄' };
+  let allPets = [];
+
+  async function init() {
+    try {
+      const [records, pets] = await Promise.all([RecordsAPI.getAll(), PetsAPI.getAll()]);
+      allPets = pets;
+      populatePetSelect();
+      renderRecords(records);
+    } catch(e) {
+      showToast('Could not load records.', 'error');
+    } finally {
+      document.getElementById('spinner').style.display = 'none';
+    }
+  }
+
+  function populatePetSelect() {
+    document.getElementById('recPetId').innerHTML =
+      allPets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+
+  function renderRecords(records) {
+    const list = document.getElementById('recordList');
+    if (!records.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📁</div><p>No records yet. Upload the first one!</p></div>`;
+      return;
+    }
+    list.innerHTML = records.map(r => `
+      <div class="record-item">
+        <div class="rec-icon">${REC_ICON[r.record_type] || '📄'}</div>
+        <div class="rec-info">
+          <div class="rec-title">${r.title}</div>
+          <div class="rec-meta">🐾 ${r.pet_name} · ${r.record_type} · 📅 ${formatDate(r.created_at)}</div>
+          <div class="rec-meta" style="margin-top:.25rem;">📂 <code style="font-size:.78rem;color:var(--accent)">${r.file_path}</code></div>
+        </div>
+        <div class="rec-actions">
+          <a href="http://localhost:5000${r.file_path}" target="_blank" class="btn btn-accent btn-sm">👁️ View</a>
+          <button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function showFileName(input) {
+    const name = input.files[0]?.name || 'No file chosen';
+    document.getElementById('fileDropText').innerHTML = `✅ <strong>${name}</strong>`;
+  }
+
+  // Drag and drop
+  const drop = document.getElementById('fileDrop');
+  drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('dragover'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('recFile').files = e.dataTransfer.files;
+      showFileName(document.getElementById('recFile'));
+    }
+  });
+
+  async function saveRecord() {
+    const title  = document.getElementById('recTitle').value.trim();
+    const pet_id = document.getElementById('recPetId').value;
+    const type   = document.getElementById('recType').value;
+    const file   = document.getElementById('recFile').files[0];
+
+    if (!title || !pet_id) { showToast('Title and pet are required.', 'error'); return; }
+
+    const fd = new FormData();
+    fd.append('title',       title);
+    fd.append('pet_id',      pet_id);
+    fd.append('record_type', type);
+    if (file) fd.append('file', file);
+
+    try {
+      await RecordsAPI.create(fd);
+      showToast('Record uploaded!');
+      closeModal('recModal');
+      init();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Delete this record?')) return;
+    try { await RecordsAPI.delete(id); showToast('Deleted.'); init(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }
+
+  init();
+</script>
+</body>
+</html>

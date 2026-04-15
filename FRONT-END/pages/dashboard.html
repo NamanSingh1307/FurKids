@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Dashboard</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .pet-card-top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .pet-avatar { font-size:2.8rem; margin-bottom:.75rem; }
+    .pet-name   { font-size:1.2rem; font-weight:800; margin-bottom:.2rem; }
+    .pet-breed  { font-size:.85rem; color:var(--text-muted); margin-bottom:1rem; }
+    .pet-meta   { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .pet-meta span { background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:6px; padding:.25rem .7rem; font-size:.8rem; }
+    .pet-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .reminder-chip { display:inline-flex; align-items:center; gap:.4rem; background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.25); color:var(--primary); border-radius:6px; padding:.3rem .7rem; font-size:.78rem; margin-top:.5rem; }
+    .reminder-chip.soon { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.3); color:var(--warn); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <div class="dash-header">
+      <h1 class="section-title" style="margin-bottom:0">Pet <span>Dashboard</span></h1>
+      <button class="btn btn-primary" onclick="openModal('petModal')">+ Add Pet</button>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="spinner" class="spinner"></div>
+
+    <!-- Pet cards grid -->
+    <div class="card-grid" id="petGrid"></div>
+  </div>
+</div>
+
+<!-- ── Add / Edit Pet Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="petModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Pet</h3>
+      <button class="modal-close" onclick="closeModal('petModal')">✕</button>
+    </div>
+    <input type="hidden" id="petId" />
+    <div class="form-group">
+      <label>Pet Name *</label>
+      <input type="text" id="petName" placeholder="e.g. Bruno" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Species</label>
+        <select id="petSpecies">
+          <option value="Dog">🐶 Dog</option>
+          <option value="Cat">🐱 Cat</option>
+          <option value="Bird">🐦 Bird</option>
+          <option value="Rabbit">🐰 Rabbit</option>
+          <option value="Fish">🐠 Fish</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Breed *</label>
+        <input type="text" id="petBreed" placeholder="e.g. Labrador" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Age (years) *</label>
+        <input type="number" id="petAge" placeholder="2.5" step="0.1" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Weight (kg) *</label>
+        <input type="number" id="petWeight" placeholder="12.0" step="0.1" min="0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="petNotes" placeholder="Any special notes..."></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('petModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePet()">Save Pet</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  // Species → emoji map
+  const SPECIES_EMOJI = { Dog:'🐶', Cat:'🐱', Bird:'🐦', Rabbit:'🐰', Fish:'🐠', Other:'🐾' };
+
+  let allReminders = [];
+
+  // ── Load everything on page ready ─────────────────────────
+  async function init() {
+    try {
+      const [pets, reminders] = await Promise.all([PetsAPI.getAll(), RemindersAPI.getAll()]);
+      allReminders = reminders;
+      renderPets(pets);
+    } catch (e) {
+      showToast('Could not load pets. Is the backend running?', 'error');
+    } finally {
+      document.getElementById('spinner').style.display = 'none';
+    }
+  }
+
+  // ── Render pet cards ───────────────────────────────────────
+  function renderPets(pets) {
+    const grid = document.getElementById('petGrid');
+    if (!pets.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🐾</div>
+        <p>No pets yet. Add your first pet!</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = pets.map(pet => {
+      // Find upcoming reminders for this pet (next 30 days)
+      const upcomingReminders = allReminders
+        .filter(r => r.pet_id === pet.id && daysUntil(r.date) >= 0 && daysUntil(r.date) <= 30)
+        .slice(0, 2);
+
+      const reminderChips = upcomingReminders.map(r => {
+        const d = daysUntil(r.date);
+        const cls = d <= 7 ? 'soon' : '';
+        return `<span class="reminder-chip ${cls}">⏰ ${cap(r.type)} in ${d}d</span>`;
+      }).join('');
+
+      return `
+      <div class="card" id="pet-${pet.id}">
+        <div class="pet-card-top">
+          <div class="pet-avatar">${SPECIES_EMOJI[pet.species] || '🐾'}</div>
+          <div>
+            <span class="badge badge-green">${pet.species || 'Pet'}</span>
+          </div>
+        </div>
+        <div class="pet-name">${pet.name}</div>
+        <div class="pet-breed">${pet.breed}</div>
+        <div class="pet-meta">
+          <span>🎂 ${pet.age} yrs</span>
+          <span>⚖️ ${pet.weight} kg</span>
+        </div>
+        ${reminderChips ? `<div style="margin-bottom:1rem">${reminderChips}</div>` : ''}
+        <div class="pet-actions">
+          <button class="btn btn-outline btn-sm" onclick="editPet(${pet.id})">✏️ Edit</button>
+          <a href="records.html?pet=${pet.id}" class="btn btn-accent btn-sm">📁 Records</a>
+          <button class="btn btn-danger btn-sm" onclick="deletePet(${pet.id}, '${pet.name}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Save (create or update) ────────────────────────────────
+  async function savePet() {
+    const id      = document.getElementById('petId').value;
+    const payload = {
+      name:    document.getElementById('petName').value.trim(),
+      species: document.getElementById('petSpecies').value,
+      breed:   document.getElementById('petBreed').value.trim(),
+      age:     parseFloat(document.getElementById('petAge').value),
+      weight:  parseFloat(document.getElementById('petWeight').value),
+      notes:   document.getElementById('petNotes').value.trim(),
+    };
+
+    if (!payload.name || !payload.breed || isNaN(payload.age) || isNaN(payload.weight)) {
+      showToast('Please fill all required fields.', 'error'); return;
+    }
+
+    try {
+      if (id) { await PetsAPI.update(id, payload); showToast('Pet updated!'); }
+      else     { await PetsAPI.create(payload);     showToast('Pet added!'); }
+      closeModal('petModal');
+      init();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  // ── Edit – pre-fill modal ──────────────────────────────────
+  async function editPet(id) {
+    try {
+      const pet = await PetsAPI.getOne(id);
+      document.getElementById('petId').value       = pet.id;
+      document.getElementById('petName').value     = pet.name;
+      document.getElementById('petSpecies').value  = pet.species;
+      document.getElementById('petBreed').value    = pet.breed;
+      document.getElementById('petAge').value      = pet.age;
+      document.getElementById('petWeight').value   = pet.weight;
+      document.getElementById('petNotes').value    = pet.notes || '';
+      document.getElementById('modalTitle').textContent = 'Edit Pet';
+      openModal('petModal');
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  // ── Delete ─────────────────────────────────────────────────
+  async function deletePet(id, name) {
+    if (!confirm(`Delete ${name}? This will also remove all their reminders and records.`)) return;
+    try {
+      await PetsAPI.delete(id);
+      showToast(`${name} removed.`);
+      init();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  // Reset modal when opening for new pet
+  document.getElementById('petModal').addEventListener('click', e => {
+    if (e.target.id === 'petModal') return;
+  });
+  document.querySelector('[onclick="openModal(\'petModal\')"]').addEventListener('click', () => {
+    document.getElementById('petId').value = '';
+    document.getElementById('petName').value = '';
+    document.getElementById('petBreed').value = '';
+    document.getElementById('petAge').value = '';
+    document.getElementById('petWeight').value = '';
+    document.getElementById('petNotes').value = '';
+    document.getElementById('modalTitle').textContent = 'Add New Pet';
+  });
+
+  init();
+</script>
+</body>
+</html>

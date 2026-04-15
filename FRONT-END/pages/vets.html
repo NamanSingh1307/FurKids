@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FurKids – Vet Finder</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .vets-grid { display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); }
+    .vet-card { padding:1.5rem; }
+    .vet-icon { font-size:2rem; margin-bottom:.75rem; }
+    .vet-name { font-size:1.05rem; font-weight:800; margin-bottom:.25rem; }
+    .vet-spec { font-size:.8rem; color:var(--accent); font-weight:600; margin-bottom:.75rem; }
+    .vet-detail { display:flex; align-items:center; gap:.5rem; font-size:.85rem; color:var(--text-muted); margin-bottom:.35rem; }
+    .vet-tags  { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.75rem; }
+    .search-bar { margin-bottom:2rem; }
+    .search-bar input { max-width:400px; }
+    .city-filter { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .city-btn { background:var(--card); border:1px solid var(--border); border-radius:99px; padding:.35rem .9rem; font-size:.82rem; cursor:pointer; transition:background .2s,border-color .2s; }
+    .city-btn:hover, .city-btn.active { background:var(--primary); border-color:var(--primary); color:#000; font-weight:600; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="nav-brand">Fur<span>Kids</span> 🐾</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="problem.html">Problem Solver</a>
+      <a href="reminders.html">Reminders</a>
+      <a href="records.html">Records</a>
+      <a href="vets.html" class="active">Vets</a>
+      <a href="guides.html">Guides</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <h1 class="section-title">📍 Find a <span>Vet</span></h1>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;">Trusted veterinary clinics across India. Always call ahead to confirm availability.</p>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Search by name, city, or specialisation..." oninput="filterVets()" />
+    </div>
+
+    <div class="city-filter" id="cityFilter"></div>
+
+    <div class="vets-grid" id="vetsGrid"></div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  // Static vet data — India-focused
+  const VETS = [
+    { name:'Dr. Rao Animal Clinic',       city:'Bengaluru',   area:'Indiranagar',       phone:'080-41234567', email:'rao.vet@example.com',    specialisation:'Small Animals',    tags:['Dogs','Cats','Surgery'],   rating:'4.8', emergency:true  },
+    { name:'PetCure Hospital',               city:'Mumbai',      area:'Andheri West',      phone:'022-26781234', email:'petcure@example.com',     specialisation:'Multi-specialty',  tags:['All Pets','ICU','Lab'],    rating:'4.7', emergency:true  },
+    { name:'Delhi Pet Wellness Centre',      city:'New Delhi',   area:'Hauz Khas',         phone:'011-45671234', email:'dpwc@example.com',        specialisation:'General Practice', tags:['Dogs','Cats','Rabbits'],   rating:'4.5', emergency:false },
+    { name:'Chennai Animal Hospital',        city:'Chennai',     area:'T. Nagar',          phone:'044-28881234', email:'cah@example.com',         specialisation:'Orthopaedics',     tags:['Dogs','Birds','X-Ray'],    rating:'4.6', emergency:true  },
+    { name:'Hyderabad Vet Clinic',           city:'Hyderabad',   area:'Banjara Hills',     phone:'040-23456789', email:'hvc@example.com',         specialisation:'Dermatology',      tags:['Cats','Skin','Allergy'],   rating:'4.4', emergency:false },
+    { name:'PawCare Kolkata',                city:'Kolkata',     area:'Salt Lake',         phone:'033-23456789', email:'pawcare@example.com',     specialisation:'Exotic Animals',   tags:['Reptiles','Birds','Exotic'],rating:'4.3',emergency:false },
+    { name:'Jaipur Pet Clinic',              city:'Jaipur',      area:'C-Scheme',          phone:'0141-4001234', email:'jpc@example.com',         specialisation:'Small Animals',    tags:['Dogs','Cats','Nutrition'], rating:'4.5', emergency:false },
+    { name:'Pune Animal Care Centre',        city:'Pune',        area:'Koregaon Park',     phone:'020-26543210', email:'pacc@example.com',        specialisation:'General Practice', tags:['Dogs','Cats','Rabbits'],   rating:'4.6', emergency:true  },
+    { name:'Ahmedabad Vet Hospital',         city:'Ahmedabad',   area:'Navrangpura',       phone:'079-26521234', email:'avh@example.com',         specialisation:'Surgery & ICU',    tags:['Dogs','Emergency','Lab'],  rating:'4.7', emergency:true  },
+    { name:'Lucknow Pet Hospital',           city:'Lucknow',     area:'Hazratganj',        phone:'0522-4001234', email:'lph@example.com',         specialisation:'General Practice', tags:['Dogs','Cats','Deworming'], rating:'4.2', emergency:false },
+    { name:'Bhopal Animal Clinic',           city:'Bhopal',      area:'MP Nagar',          phone:'0755-4001234', email:'bac@example.com',         specialisation:'Small Animals',    tags:['Cats','Dogs','Vaccines'],  rating:'4.3', emergency:false },
+    { name:'Coimbatore Cat & Dog Hospital',  city:'Coimbatore',  area:'RS Puram',          phone:'0422-4001234', email:'ccdh@example.com',        specialisation:'Small Animals',    tags:['Cats','Dogs','Grooming'],  rating:'4.5', emergency:false },
+  ];
+
+  const CITIES = [...new Set(VETS.map(v => v.city))].sort();
+  let activeCity = 'All';
+  let searchTerm = '';
+
+  // Render city filter buttons
+  const cityFilter = document.getElementById('cityFilter');
+  cityFilter.innerHTML = ['All', ...CITIES].map(city =>
+    `<button class="city-btn ${city==='All'?'active':''}" onclick="setCity('${city}')">${city}</button>`
+  ).join('');
+
+  function setCity(city) {
+    activeCity = city;
+    document.querySelectorAll('.city-btn').forEach(b => b.classList.toggle('active', b.textContent === city));
+    renderVets();
+  }
+
+  function filterVets() {
+    searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    renderVets();
+  }
+
+  function renderVets() {
+    const filtered = VETS.filter(v => {
+      const matchCity   = activeCity === 'All' || v.city === activeCity;
+      const matchSearch = !searchTerm ||
+        v.name.toLowerCase().includes(searchTerm) ||
+        v.city.toLowerCase().includes(searchTerm) ||
+        v.specialisation.toLowerCase().includes(searchTerm) ||
+        v.tags.some(t => t.toLowerCase().includes(searchTerm));
+      return matchCity && matchSearch;
+    });
+
+    const grid = document.getElementById('vetsGrid');
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📍</div><p>No vets found for your search.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(v => `
+      <div class="card vet-card">
+        <div class="vet-icon">🏥</div>
+        <div class="vet-name">${v.name}</div>
+        <div class="vet-spec">${v.specialisation}</div>
+        ${v.emergency ? '<span class="badge badge-red" style="margin-bottom:.75rem">🚨 24/7 Emergency</span>' : ''}
+        <div class="vet-detail">📍 ${v.area}, ${v.city}</div>
+        <div class="vet-detail">📞 <a href="tel:${v.phone}" style="color:var(--accent)">${v.phone}</a></div>
+        <div class="vet-detail">✉️ <a href="mailto:${v.email}" style="color:var(--accent)">${v.email}</a></div>
+        <div class="vet-detail">⭐ ${v.rating} / 5.0</div>
+        <div class="vet-tags">${v.tags.map(t => `<span class="badge badge-blue">${t}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+
+  renderVets();
+</script>
+</body>
+</html>
